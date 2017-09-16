@@ -19,14 +19,16 @@
 	<MvIF EXPR = "{ l.pricegroup:id }">
 		<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "{ l.pricegroup:config:product_code }">
 		<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = "{ l.pricegroup:config:quantity }">
+		<MvASSIGN NAME = "g.Addon_Multiplier"	VALUE = "{ l.pricegroup:config:multiplier }">
 		<MvASSIGN NAME = "g.Addon_Price"		VALUE = "{ l.pricegroup:config:price ROUND 2 }">
 	<MvELSE>
 		<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "">
 		<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = 0>
 		<MvASSIGN NAME = "g.Addon_Price"		VALUE = 0.00>
+		<MvASSIGN NAME = "g.Addon_Multiplier"	VALUE = 1>
 	</MvIF>
 
-	<MvFUNCTIONRETURN VALUE = "product_code,quantity,price">
+	<MvFUNCTIONRETURN VALUE = "product_code,quantity,price,multiplier">
 </MvFUNCTION>
 
 <MvFUNCTION NAME = "DiscountModule_Invalid" PARAMETERS = "module var, field_id" STANDARDOUTPUTLEVEL = "">
@@ -37,6 +39,7 @@
 	<MvIF EXPR = "{ l.field_id EQ 'product_code' }">	<MvFUNCTIONRETURN VALUE = "<b>Add-on Product:</b>">
 	<MvELSEIF EXPR = "{ l.field_id EQ 'quantity' }">	<MvFUNCTIONRETURN VALUE = "<b>Maximum Quantity to Add:</b>">
 	<MvELSEIF EXPR = "{ l.field_id EQ 'price' }">		<MvFUNCTIONRETURN VALUE = "<b>Price/Each:</b>">
+	<MvELSEIF EXPR = "{ l.field_id EQ 'multiplier' }">	<MvFUNCTIONRETURN VALUE = "<b>Multiplier:</b>">
 	</MvIF>
 
 	<MvFUNCTIONRETURN VALUE = "">
@@ -49,6 +52,8 @@
 		<input type="text" size="5" name="Addon_Quantity" value="{ encodeentities( g.Addon_Quantity ) }"> (0 = no limit)
 	<MvELSEIF EXPR = "{ l.field_id EQ 'price' }">
 		<input type="text" size="5" name="Addon_Price" value="{ encodeentities( g.Addon_Price ) }">
+	<MvELSEIF EXPR = "{ l.field_id EQ 'multiplier' }">
+		<input type="text" size="5" name="Addon_Multiplier" value="{ encodeentities( g.Addon_Multiplier ) }">
 	</MvIF>
 
 	<MvFUNCTIONRETURN VALUE = 1>
@@ -58,6 +63,7 @@
 	<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "{ trim( g.Addon_Product_Code ) }">
 	<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = "{ trim( g.Addon_Quantity ) }">
 	<MvASSIGN NAME = "g.Addon_Price"		VALUE = "{ trim( g.Addon_Price ) }">
+	<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = "{ trim( g.Addon_Quantity ) }">
 
 	<MvIF EXPR = "{ ISNULL g.Addon_Product_Code }">
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Product_Code', 'Please specify a product code' ) }">
@@ -67,6 +73,10 @@
 		</MvIF>
 
 		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Product_Code', 'Product \'' $ g.Addon_Product_Code $ '\' does not exist' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_WholeNumber_NonNegative_Required( g.Addon_Quantity ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Quantity', g.Validation_Message ) }">
 	</MvIF>
 
 	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_WholeNumber_NonNegative_Required( g.Addon_Quantity ) }">
@@ -84,6 +94,7 @@
 	<MvASSIGN NAME = "l.pricegroup:config:product_code"	VALUE = "{ g.Addon_Product_Code }">
 	<MvASSIGN NAME = "l.pricegroup:config:quantity"		VALUE = "{ g.Addon_Quantity }">
 	<MvASSIGN NAME = "l.pricegroup:config:price"		VALUE = "{ g.Addon_Price }">
+	<MvASSIGN NAME = "l.pricegroup:config:multiplier"	VALUE = "{ g.Addon_Multiplier }">
 
 	<MvFUNCTIONRETURN VALUE = 1>
 </MvFUNCTION>
@@ -101,11 +112,12 @@
 	</MvCOMMENT>
 
 
-	<MvASSIGN NAME = "l.quantity_remaining" VALUE = "0">
-	<MvASSIGN NAME = "l.maximum_quantity"			VALUE = "{ l.pricegroup:config:quantity }">
+	<MvASSIGN NAME = "l.quantity_remaining"	 VALUE = "0">
+	<MvASSIGN NAME = "l.maximum_quantity"	VALUE = "{ l.pricegroup:config:quantity }">
+	<MvASSIGN NAME = "l.multiplier"			VALUE = "{ l.pricegroup:config:multiplier }">
 
 	<MvFOREACH ITERATOR = "l.qualifying_item" ARRAY = "l.qualifying_items" COUNT = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Qualifying_Items_Sorted_TotalPriceAscending( l.discount_state, l.qualifying_items ) }">
-		<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.quantity_remaining + l.qualifying_item:quantity }">
+		<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.quantity_remaining + ( l.qualifying_item:quantity * l.multiplier ) }">
 	</MvFOREACH>
 
 	<MvIF EXPR = "{ l.maximum_quantity GT 0 }">
