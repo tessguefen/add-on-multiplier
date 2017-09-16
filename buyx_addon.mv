@@ -1,0 +1,193 @@
+<MvFUNCTION NAME = "Module_Description" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.module:code"		VALUE = "discount_addon_test">
+	<MvASSIGN NAME = "l.module:name"		VALUE = "Add-on Product TEST">
+	<MvASSIGN NAME = "l.module:provider"	VALUE = "Tess Guefen">
+	<MvASSIGN NAME = "l.module:version"		VALUE = "9.0001">
+	<MvASSIGN NAME = "l.module:api_ver"		VALUE = "9.01">
+	<MvASSIGN NAME = "l.module:features"	VALUE = "discount">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Capabilities" PARAMETERS = "module var, capabilities var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.capabilities:items"					VALUE = 0>
+	<MvASSIGN NAME = "l.capabilities:basket"				VALUE = 1>
+	<MvASSIGN NAME = "l.capabilities:shipping"				VALUE = 0>
+	<MvASSIGN NAME = "l.capabilities:tax"					VALUE = 0>
+	<MvASSIGN NAME = "l.capabilities:provision_settings"	VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Fields" PARAMETERS = "module var, pricegroup var" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ l.pricegroup:id }">
+		<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "{ l.pricegroup:config:product_code }">
+		<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = "{ l.pricegroup:config:quantity }">
+		<MvASSIGN NAME = "g.Addon_Price"		VALUE = "{ l.pricegroup:config:price ROUND 2 }">
+	<MvELSE>
+		<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "">
+		<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = 0>
+		<MvASSIGN NAME = "g.Addon_Price"		VALUE = 0.00>
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = "product_code,quantity,price">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Invalid" PARAMETERS = "module var, field_id" STANDARDOUTPUTLEVEL = "">
+	<MvFUNCTIONRETURN VALUE = 0>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Prompt" PARAMETERS = "module var, field_id" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ l.field_id EQ 'product_code' }">	<MvFUNCTIONRETURN VALUE = "<b>Add-on Product:</b>">
+	<MvELSEIF EXPR = "{ l.field_id EQ 'quantity' }">	<MvFUNCTIONRETURN VALUE = "<b>Maximum Quantity to Add:</b>">
+	<MvELSEIF EXPR = "{ l.field_id EQ 'price' }">		<MvFUNCTIONRETURN VALUE = "<b>Price/Each:</b>">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = "">
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Field" PARAMETERS = "module var, field_id" STANDARDOUTPUTLEVEL = "text, html, compresswhitespace">
+	<MvIF EXPR = "{ l.field_id EQ 'product_code' }">
+		<input type="text" size="20" id="Addon_Product_Code" name="Addon_Product_Code" value="{ encodeentities( g.Addon_Product_Code ) }"> <a href="JavaScript:ProductLookupDialog( 'Addon_Product_Code' );"><MvEVAL EXPR = "{ [ g.Module_Admin ].DrawImgButton_Lookup( 0 ) }"></a>
+	<MvELSEIF EXPR = "{ l.field_id EQ 'quantity' }">
+		<input type="text" size="5" name="Addon_Quantity" value="{ encodeentities( g.Addon_Quantity ) }"> (0 = no limit)
+	<MvELSEIF EXPR = "{ l.field_id EQ 'price' }">
+		<input type="text" size="5" name="Addon_Price" value="{ encodeentities( g.Addon_Price ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Validate" PARAMETERS = "module var, pricegroup var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "g.Addon_Product_Code"	VALUE = "{ trim( g.Addon_Product_Code ) }">
+	<MvASSIGN NAME = "g.Addon_Quantity"		VALUE = "{ trim( g.Addon_Quantity ) }">
+	<MvASSIGN NAME = "g.Addon_Price"		VALUE = "{ trim( g.Addon_Price ) }">
+
+	<MvIF EXPR = "{ ISNULL g.Addon_Product_Code }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Product_Code', 'Please specify a product code' ) }">
+	<MvELSEIF EXPR = "{ NOT [ g.Module_Library_DB ].Product_Load_Code( g.Addon_Product_Code, l.product ) }">
+		<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].Error_Is_EOF() }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Product_Code', g.Error_Message ) }">
+		</MvIF>
+
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Product_Code', 'Product \'' $ g.Addon_Product_Code $ '\' does not exist' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_WholeNumber_NonNegative_Required( g.Addon_Quantity ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Quantity', g.Validation_Message ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Currency_NonNegative_Required( g.Addon_Price ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Admin ].FieldError( '', 'Addon_Price', g.Validation_Message ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Update" PARAMETERS = "module var, pricegroup var" STANDARDOUTPUTLEVEL = "">
+	<MvASSIGN NAME = "l.pricegroup:config:product_code"	VALUE = "{ g.Addon_Product_Code }">
+	<MvASSIGN NAME = "l.pricegroup:config:quantity"		VALUE = "{ g.Addon_Quantity }">
+	<MvASSIGN NAME = "l.pricegroup:config:price"		VALUE = "{ g.Addon_Price }">
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Discount_Basket" PARAMETERS = "module var, pricegroup var, discount_state var" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].Product_Load_Code_WithRuntimeInventory( l.pricegroup:config:product_code, l.product ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Library_DB ].Error_Is_EOF() }">
+	</MvIF>
+
+	<MvCOMMENT>
+	|
+	| If the addon product is already in the basket, we discount those line items until we have met the
+	| addon quantity.  Any remaining addon quantity to be applied is inserted as new BasketItem entries.
+	|
+	</MvCOMMENT>
+
+
+	<MvASSIGN NAME = "l.quantity_remaining" VALUE = "0">
+	<MvASSIGN NAME = "l.maximum_quantity"			VALUE = "{ l.pricegroup:config:quantity }">
+
+	<MvFOREACH ITERATOR = "l.qualifying_item" ARRAY = "l.qualifying_items" COUNT = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Qualifying_Items_Sorted_TotalPriceAscending( l.discount_state, l.qualifying_items ) }">
+		<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.quantity_remaining + l.qualifying_item:quantity }">
+	</MvFOREACH>
+
+	<MvIF EXPR = "{ l.maximum_quantity GT 0 }">
+		<MvIF EXPR = "{ l.quantity_remaining GT l.maximum_quantity }">
+			<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.maximum_quantity }">
+		</MvIF>
+	</MvIF>
+
+	<MvFOREACH ITERATOR = "l.item" ARRAY = "l.items" COUNT = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Product_Items( l.discount_state, l.product:id, l.items ) }">
+
+		<MvIF EXPR = "{ l.item:quantity GT l.quantity_remaining }">
+			<MvASSIGN NAME = "l.item_discount_quantity"	VALUE = "{ l.quantity_remaining }">
+		<MvELSE>
+			<MvASSIGN NAME = "l.item_discount_quantity"	VALUE = "{ l.item:quantity }">
+		</MvIF>
+
+		<MvEVAL EXPR = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Discount_Item_Fixed( l.discount_state, l.item, l.item_discount_quantity, l.item:total_price - l.pricegroup:config:price ) }">
+
+		<MvASSIGN NAME = "l.quantity_remaining"		VALUE = "{ l.quantity_remaining - l.item_discount_quantity }">
+		<MvIF EXPR = "{ l.quantity_remaining EQ 0 }">
+			<MvFOREACHSTOP>
+		</MvIF>
+	</MvFOREACH>
+
+	<MvIF EXPR = "{ l.product:inv_active AND l.product:inv_out_track AND ( l.quantity_remaining GT l.product:inv_available ) }">
+		<MvASSIGN NAME = "l.quantity_remaining"		VALUE = "{ l.product:inv_available }">
+	</MvIF>
+
+	<MvIF EXPR = "{ l.quantity_remaining GT 0 }">
+		<MvASSIGN NAME = "l.new_item:product_id"	VALUE = "{ l.product:id }">
+		<MvASSIGN NAME = "l.new_item:variant_id"	VALUE = 0>
+		<MvASSIGN NAME = "l.new_item:code"			VALUE = "{ l.product:code }">
+		<MvASSIGN NAME = "l.new_item:name"			VALUE = "{ l.product:name }">
+		<MvASSIGN NAME = "l.new_item:retail"		VALUE = "{ l.product:price }">
+		<MvASSIGN NAME = "l.new_item:base_price"	VALUE = "{ l.product:price }">
+		<MvASSIGN NAME = "l.new_item:price"			VALUE = "{ l.product:price }">
+		<MvASSIGN NAME = "l.new_item:weight"		VALUE = "{ l.product:weight }">
+		<MvASSIGN NAME = "l.new_item:taxable"		VALUE = "{ l.product:taxable }">
+		<MvASSIGN NAME = "l.new_item:upsold"		VALUE = 0>
+		<MvASSIGN NAME = "l.new_item:quantity"		VALUE = "{ l.quantity_remaining }">
+
+		<MvEVAL EXPR = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Discount_Item_Add( l.discount_state, l.new_item ) }">
+		<MvEVAL EXPR = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Discount_Item_Fixed( l.discount_state, l.new_item, l.new_item:quantity, l.new_item:total_price - l.pricegroup:config:price ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_Provision_Settings" PARAMETERS = "module var, pricegroup var, provide_xml var" STANDARDOUTPUTLEVEL = "">
+	<MvIF EXPR = "{ l.pricegroup:module_id EQ l.module:id }">
+		<MvASSIGN NAME = "l.required"					VALUE = "O">
+	<MvELSE>
+		<MvASSIGN NAME = "l.required"					VALUE = "R">
+		<MvASSIGN NAME = "l.pricegroup:config:quantity"	VALUE = 1>
+		<MvASSIGN NAME = "l.pricegroup:config:price"	VALUE = 0.00>
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Feature_PRV_AD ].PRV_Tag_Text(	l.required,		l.provide_xml, 'Product',	l.pricegroup:config:product_code )			OR
+					NOT [ g.Module_Feature_PRV_AD ].PRV_Tag_Number(	'o',			l.provide_xml, 'Quantity',	l.pricegroup:config:quantity,	-1, -1 )	OR
+					NOT [ g.Module_Feature_PRV_AD ].PRV_Tag_Number( 'o',			l.provide_xml, 'Price',		l.pricegroup:config:price,		10, 2 )	 }">
+		<MvFUNCTIONRETURN VALUE = 0>
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].Product_Load_Code( l.pricegroup:config:product_code, l.product ) }">
+		<MvIF EXPR = "{ NOT [ g.Module_Library_DB ].Error_Is_EOF() }">
+			<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Feature_PRV_AD ].PRV_LogError( l.provide_xml ) }">
+		</MvIF>
+
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Feature_PRV_AD ].PRV_LogMessage( l.provide_xml, 'Product \'' $ l.pricegroup:config:product_code $ '\' not found' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_WholeNumber_NonNegative_Required( l.pricegroup:config:quantity ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Feature_PRV_AD ].PRV_LogMessage( l.provide_xml, 'Quantity must be a non-negative whole number' ) }">
+	</MvIF>
+
+	<MvIF EXPR = "{ NOT [ g.Module_Admin ].Validate_Currency_NonNegative_Required( l.pricegroup:config:price ) }">
+		<MvFUNCTIONRETURN VALUE = "{ [ g.Module_Feature_PRV_AD ].PRV_LogMessage( l.provide_xml, 'Price must be a non-negative number' ) }">
+	</MvIF>
+
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
+
+<MvFUNCTION NAME = "DiscountModule_PriceGroup_Delete" PARAMETERS = "module var, pricegroup var" STANDARDOUTPUTLEVEL = "">
+	<MvFUNCTIONRETURN VALUE = 1>
+</MvFUNCTION>
