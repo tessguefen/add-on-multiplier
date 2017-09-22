@@ -1,8 +1,8 @@
 <MvFUNCTION NAME = "Module_Description" PARAMETERS = "module var" STANDARDOUTPUTLEVEL = "">
-	<MvASSIGN NAME = "l.module:code"		VALUE = "discount_addon_test">
-	<MvASSIGN NAME = "l.module:name"		VALUE = "Add-on Product TEST">
+	<MvASSIGN NAME = "l.module:code"		VALUE = "addon_multiply">
+	<MvASSIGN NAME = "l.module:name"		VALUE = "Add-on Product Multiplier">
 	<MvASSIGN NAME = "l.module:provider"	VALUE = "Tess Guefen">
-	<MvASSIGN NAME = "l.module:version"		VALUE = "9.0001">
+	<MvASSIGN NAME = "l.module:version"		VALUE = "1.000">
 	<MvASSIGN NAME = "l.module:api_ver"		VALUE = "9.01">
 	<MvASSIGN NAME = "l.module:features"	VALUE = "discount">
 </MvFUNCTION>
@@ -117,7 +117,9 @@
 	<MvASSIGN NAME = "l.multiplier"			VALUE = "{ l.pricegroup:config:multiplier }">
 
 	<MvFOREACH ITERATOR = "l.qualifying_item" ARRAY = "l.qualifying_items" COUNT = "{ [ g.Module_Feature_PGR_UT ].DiscountState_Qualifying_Items_Sorted_TotalPriceAscending( l.discount_state, l.qualifying_items ) }">
-		<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.quantity_remaining + ( l.qualifying_item:quantity * l.multiplier ) }">
+		<MvIF EXPR = "{ l.qualifying_item:code NE l.pricegroup:config:product_code }">
+			<MvASSIGN NAME = "l.quantity_remaining" VALUE = "{ l.quantity_remaining + ( l.qualifying_item:quantity * l.multiplier ) }">
+		</MvIF>
 	</MvFOREACH>
 
 	<MvIF EXPR = "{ l.maximum_quantity GT 0 }">
