@@ -2,7 +2,7 @@
 	<MvASSIGN NAME = "l.module:code"		VALUE = "addon_multiply">
 	<MvASSIGN NAME = "l.module:name"		VALUE = "Add-on Product Multiplier">
 	<MvASSIGN NAME = "l.module:provider"	VALUE = "Tess Guefen">
-	<MvASSIGN NAME = "l.module:version"		VALUE = "1.000">
+	<MvASSIGN NAME = "l.module:version"		VALUE = "1.001">
 	<MvASSIGN NAME = "l.module:api_ver"		VALUE = "9.01">
 	<MvASSIGN NAME = "l.module:features"	VALUE = "discount">
 </MvFUNCTION>
@@ -112,7 +112,7 @@
 	</MvCOMMENT>
 
 
-	<MvASSIGN NAME = "l.quantity_remaining"	 VALUE = "0">
+	<MvASSIGN NAME = "l.quantity_remaining"	VALUE = "0">
 	<MvASSIGN NAME = "l.maximum_quantity"	VALUE = "{ l.pricegroup:config:quantity }">
 	<MvASSIGN NAME = "l.multiplier"			VALUE = "{ l.pricegroup:config:multiplier }">
 
@@ -153,6 +153,7 @@
 		<MvASSIGN NAME = "l.new_item:variant_id"	VALUE = 0>
 		<MvASSIGN NAME = "l.new_item:code"			VALUE = "{ l.product:code }">
 		<MvASSIGN NAME = "l.new_item:name"			VALUE = "{ l.product:name }">
+		<MvASSIGN NAME = "l.new_item:sku"			VALUE = "{ l.product:sku }">
 		<MvASSIGN NAME = "l.new_item:retail"		VALUE = "{ l.product:price }">
 		<MvASSIGN NAME = "l.new_item:base_price"	VALUE = "{ l.product:price }">
 		<MvASSIGN NAME = "l.new_item:price"			VALUE = "{ l.product:price }">
